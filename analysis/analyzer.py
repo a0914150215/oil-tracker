@@ -1,12 +1,20 @@
 """
-AI analysis engine — Claude API 分析核心
+AI analysis engine — Google Gemini API (免費)
+申請 key: https://aistudio.google.com/app/apikey
 """
-import anthropic, json, os, re
+import json, os, re
+import urllib.request, urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 
 OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(exist_ok=True)
+
+GEMINI_MODEL = "gemini-1.5-flash"   # 免費tier支援
+GEMINI_URL   = (
+    "https://generativelanguage.googleapis.com/v1beta/models/"
+    f"{GEMINI_MODEL}:generateContent"
+)
 
 SYSTEM_PROMPT = """你是一位專業的原油市場分析師，每天 06:00（台灣時間）自動產出報告。
 
@@ -28,9 +36,39 @@ SYSTEM_PROMPT = """你是一位專業的原油市場分析師，每天 06:00（�
 - 機率變化必須附上 ▲▼ 箭頭和原因說明
 - 有重大新事件（軍事/制裁/觸雷）在副標題加 ⚡"""
 
+
+def _call_gemini(prompt: str) -> str:
+    api_key = os.environ["GEMINI_API_KEY"]
+    url     = f"{GEMINI_URL}?key={api_key}"
+    body    = json.dumps({
+        "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.3,
+            "maxOutputTokens": 8192,
+        },
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+
+    # Extract text from response
+    try:
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError) as e:
+        raise RuntimeError(f"Unexpected Gemini response: {data}") from e
+
+
 def load_prev_report() -> str:
     reports = sorted(OUTPUT_DIR.glob("report_*.md"), reverse=True)
     return reports[0].read_text("utf-8") if reports else "（首次生成，無前日報告）"
+
 
 def load_prev_json() -> dict:
     jsons = sorted(OUTPUT_DIR.glob("data_*.json"), reverse=True)
@@ -41,8 +79,9 @@ def load_prev_json() -> dict:
             pass
     return {}
 
+
 def build_prompt(scraped: dict, prev_report: str, prev_json: dict) -> str:
-    today = datetime.now(timezone.utc).strftime("%Y年%-m月%-d日")
+    today        = datetime.now(timezone.utc).strftime("%Y年%-m月%-d日")
     scraped_str  = json.dumps(scraped,   ensure_ascii=False, indent=2)[:14000]
     prev_str     = json.dumps(prev_json, ensure_ascii=False, indent=2)[:3000]
     prev_rep_str = prev_report[:4000]
@@ -67,6 +106,7 @@ def build_prompt(scraped: dict, prev_report: str, prev_json: dict) -> str:
 數據缺失時標記「數據待確認」並給合理估計範圍。
 機率框架必須根據今日新事件合理更新。"""
 
+
 def extract_kv(report_md: str, scraped: dict) -> dict:
     def fp(pattern):
         m = re.search(pattern, report_md)
@@ -82,21 +122,16 @@ def extract_kv(report_md: str, scraped: dict) -> dict:
         "s3_pct":         fp(r"③ [^%\d]*([\d.]+)%"),
         "s4_pct":         fp(r"④ [^%\d]*([\d.]+)%"),
         "expected_price": fp(r"E\[P\][^\d\$]*\~?\$?([\d.]+)"),
-        "sources_ok":     sum(1 for v in scraped.values() if isinstance(v,dict) and "error" not in v),
+        "sources_ok":     sum(1 for v in scraped.values()
+                              if isinstance(v, dict) and "error" not in v),
     }
 
+
 def run_analysis(scraped: dict) -> tuple[str, dict]:
-    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     prev_report = load_prev_report()
     prev_json   = load_prev_json()
     prompt      = build_prompt(scraped, prev_report, prev_json)
-    print("  [AI] Calling Claude API...")
-    msg = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=4096,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    report_md = msg.content[0].text
-    structured = extract_kv(report_md, scraped)
+    print("  [AI] Calling Gemini API...")
+    report_md   = _call_gemini(prompt)
+    structured  = extract_kv(report_md, scraped)
     return report_md, structured
