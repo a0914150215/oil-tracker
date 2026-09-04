@@ -1,0 +1,133 @@
+{
+  "date": "2026-09-04",
+  "prices": {
+    "timestamp": "2026-09-04T11:23:13.576051+00:00",
+    "eia_crude": {
+      "source": "EIA open API",
+      "data": {
+        "wti": {
+          "price": "84.62",
+          "period": "2026-08-28",
+          "unit": "USD/bbl"
+        },
+        "brent": {
+          "price": "89.73",
+          "period": "2026-08-28",
+          "unit": "USD/bbl"
+        }
+      }
+    },
+    "eia_products": {
+      "source": "EIA petroleum products",
+      "data": {}
+    },
+    "freightos_fbx": {
+      "source": "Freightos FBX",
+      "data": {
+        "extracted_rates": [
+          "7",
+          "40",
+          "3,532.00",
+          "01",
+          "02",
+          "03"
+        ]
+      },
+      "headlines": []
+    },
+    "baltic_td3c": {
+      "source": "HellenicShipping/Baltic TD3C",
+      "data": {},
+      "articles": []
+    },
+    "alphaliner": {
+      "source": "Alphaliner",
+      "headlines": []
+    },
+    "singapore_inventory": {
+      "source": "IE Singapore",
+      "data": {},
+      "error": "[Errno -2] Name or service not known"
+    }
+  },
+  "geopolitics": {
+    "timestamp": "2026-09-04T11:23:39.831517+00:00",
+    "reuters": {
+      "source": "Reuters",
+      "headlines": [],
+      "filtered": []
+    },
+    "centcom": {
+      "source": "CENTCOM",
+      "releases": [],
+      "filtered": []
+    },
+    "ofac": {
+      "source": "OFAC/Treasury",
+      "actions": [
+        "About OFAC History Introductory Document Video Overview",
+        "Introductory Document",
+        "Video Overview",
+        "Recent Actions",
+        "Sanctions Lists Sanctions List Service Specially Designated Nationals (SDN) List Consolidated Sanctions List (Non-SDN Lists) Other OFAC Sanctions Lists Sanctions List Search",
+        "Sanctions List Service",
+        "Specially Designated Nationals (SDN) List",
+        "Consolidated Sanctions List (Non-SDN Lists)",
+        "Other OFAC Sanctions Lists",
+        "Sanctions List Search",
+        "Sanctions Programs Russia-related Sanctions Iran Sanctions North Korea Sanctions Cuba Sanctions Counter Narcotics Sanctions Cyber-related Sanctions Venezuela-related Sanctions Complete List of Sanctions Programs and Country Information",
+        "Russia-related Sanctions",
+        "Iran Sanctions",
+        "North Korea Sanctions",
+        "Cuba Sanctions",
+        "Counter Narcotics Sanctions",
+        "Cyber-related Sanctions",
+        "Venezuela-related Sanctions",
+        "Complete List of Sanctions Programs and Country Information",
+        "Submit a Report",
+        "Recent Actions"
+      ],
+      "filtered": [
+        "Sanctions Programs Russia-related Sanctions Iran Sanctions North Korea Sanctions Cuba Sanctions Counter Narcotics Sanctions Cyber-related Sanctions Venezuela-related Sanctions Complete List of Sanctions Programs and Country Information",
+        "Iran Sanctions"
+      ]
+    },
+    "shipping": {
+      "source": "HellenicShipping",
+      "headlines": [],
+      "filtered": []
+    },
+    "iran_official": {
+      "source": "Tasnim (Iran)",
+      "headlines": [],
+      "filtered": [],
+      "error": "[Errno -2] Name or service not known"
+    },
+    "aramco": {
+      "source": "Aramco",
+      "headlines": [],
+      "filtered": [],
+      "error": "The read operation timed out"
+    }
+  },
+  "southeast_asia": {
+    "timestamp": "2026-09-04T11:23:45.781940+00:00",
+    "philippines_doe": {
+      "source": "Philippines DOE",
+      "data": {},
+      "price_rows": [],
+      "headlines": []
+    },
+    "indonesia_b50": {
+      "source": "Indonesia ESDM / Pertamina",
+      "data": {},
+      "headlines": []
+    },
+    "malaysia_cpo": {
+      "source": "MPOB / Bursa CPO",
+      "data": {
+        "mentions": []
+      }
+    }
+  }
+}
