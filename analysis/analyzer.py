@@ -10,7 +10,7 @@ from pathlib import Path
 OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-GEMINI_MODEL = "gemini-1.5-flash"   # 免費tier支援
+GEMINI_MODEL = "gemini-3.5-flash"   # 免費tier支援
 GEMINI_URL   = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
     f"{GEMINI_MODEL}:generateContent"
