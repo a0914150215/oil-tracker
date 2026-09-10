@@ -6,22 +6,28 @@ from pathlib import Path
 OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent"
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
 SYSTEM_PROMPT = """你是一位專業的原油市場分析師，每天06:00（台灣時間）自動產出報告。
 
-報告格式嚴格遵照以下結構，所有符號必須完全一致：
+報告格式嚴格遵照以下結構：
 
 # 原油市場深度分析報告 — {日期}（第N輪查核）
-> 台灣時間 06:00 更新 | P&I 停保第N天 | {當日最重大事件}
+> 台灣時間 06:00 更新 | P&I 停保第N天 | {事件}
 
-### 一、價格軌跡（表格，含 Brent 和 WTI 欄位）
+### 一、價格軌跡
+表格必須包含 Brent 和 WTI 的當日價格（USD/bbl）
+
 ### 二、P&I 四階段
-### 三、柴油/煉油（含「柴油裂解差」欄位，單位 USD/bbl）
-### 四、地緣政治追蹤矩陣（表格）
-### 五、機率框架
 
-機率框架必須使用以下固定格式，符號完全一致：
+### 三、柴油/煉油
+表格必須包含「柴油裂解差」欄位，格式為數字 USD/bbl，例如：$25.50
+
+### 四、地緣政治追蹤矩陣
+
+### 五、機率框架
+必須包含以下精確格式的表格（符號①②③④不可改變）：
+
 | 情境 | 機率 |
 |------|------|
 | ① 實質降溫 | X% |
@@ -29,16 +35,13 @@ SYSTEM_PROMPT = """你是一位專業的原油市場分析師，每天06:00（�
 | ③ 升級推升 | X% |
 | ④ 全面衝突 | X% |
 
-核心預測數字必須包含：
-E[P] 2-3週：~$XXX
+核心預測數字必須單獨一行，格式完全如下：
+E[P] 2-3週：~$XXX.XX
 
 ### 六、近期事件日曆
 ### 免責聲明
 
-規則：
-- 四個情境①②③④加總必須=100%
-- 機率變化附▲▼說明
-- 數據缺失標記「數據待確認」"""
+規則：四個情境①②③④加總=100%，數據缺失標記「數據待確認」。"""
 
 
 def _call_gemini(prompt: str) -> str:
@@ -82,7 +85,10 @@ def build_prompt(scraped, prev_report, prev_json) -> str:
 前日報告：
 {prev_report[:4000]}
 
-請產出今日完整Markdown報告。嚴格遵守格式，特別是機率框架必須使用①②③④符號。"""
+請產出今日完整Markdown報告。嚴格遵守格式規定，特別注意：
+1. 機率表格必須用①②③④符號
+2. E[P]必須寫成「E[P] 2-3週：~$XX.XX」格式
+3. 柴油裂解差必須是合理數值（$15-$80之間）"""
 
 
 def extract_kv(report_md: str, scraped: dict) -> dict:
@@ -90,36 +96,38 @@ def extract_kv(report_md: str, scraped: dict) -> dict:
         m = re.search(pattern, report_md, flags)
         return m.group(1) if m else None
 
-    # Brent price — look for table row with Brent
-    brent = fp(r"\|\s*\*?\*?Brent[^\|]*\|\s*\*?\*?\$?([\d.]+)")
+    # Brent — 從表格抓，格式 | Brent 原油 | **89.73** |
+    brent = fp(r"\|\s*\*?\*?Brent[^|]*\|\s*\*?\*?\$?\s*(8\d\.\d+|9\d\.\d+|7\d\.\d+)")
     if not brent:
-        brent = fp(r"Brent[^\d\$]{0,10}\$?(8\d\.\d{1,2}|9\d\.\d{1,2}|7\d\.\d{1,2})")
+        brent = fp(r"Brent[^\d]{0,5}(8\d\.\d{2}|9\d\.\d{2}|7\d\.\d{2})")
 
-    # WTI price
-    wti = fp(r"\|\s*\*?\*?WTI[^\|]*\|\s*\*?\*?\$?([\d.]+)")
+    # WTI
+    wti = fp(r"\|\s*\*?\*?WTI[^|]*\|\s*\*?\*?\$?\s*(7\d\.\d+|8\d\.\d+|9\d\.\d+)")
     if not wti:
-        wti = fp(r"WTI[^\d\$]{0,10}\$?(7\d\.\d{1,2}|8\d\.\d{1,2}|9\d\.\d{1,2})")
+        wti = fp(r"WTI[^\d]{0,5}(7\d\.\d{2}|8\d\.\d{2}|9\d\.\d{2})")
 
-    # Diesel crack spread — must be reasonable value ($5-$60)
-    crack = fp(r"柴油裂解[差價]*[^\d\$]{0,15}\$?((?:[1-5]\d|[5-9])\.\d{1,2})")
+    # Diesel crack — 合理範圍 $15-$80，避免抓到庫存數字
+    crack = fp(r"柴油裂解差[^|$\d]{0,20}\$?\s*([2-7]\d\.\d{1,2})")
     if not crack:
-        crack = fp(r"裂解差[^\d\$]{0,10}\$?([1-5]\d\.\d{1,2})")
+        crack = fp(r"Crack[^|$\d]{0,20}\$?\s*([2-7]\d\.\d{1,2})", re.I)
 
     # TD3C WS rate
-    td3c = fp(r"TD3C[^\d]*WS\s*(\d{2,3})")
+    td3c = fp(r"TD3C[^W\d]{0,15}WS\s*(\d{2,3})")
     if not td3c:
         td3c = fp(r"WS\s*(\d{2,3})")
 
-    # Scenario probabilities ①②③④
-    s1 = fp(r"①[^%\d]*([\d.]+)\s*%")
-    s2 = fp(r"②[^%\d]*([\d.]+)\s*%")
-    s3 = fp(r"③[^%\d]*([\d.]+)\s*%")
-    s4 = fp(r"④[^%\d]*([\d.]+)\s*%")
+    # Scenario probabilities ①②③④ — from table row
+    s1 = fp(r"①[^|\d%]{0,10}(\d+)\s*%")
+    s2 = fp(r"②[^|\d%]{0,10}(\d+)\s*%")
+    s3 = fp(r"③[^|\d%]{0,10}(\d+)\s*%")
+    s4 = fp(r"④[^|\d%]{0,10}(\d+)\s*%")
 
-    # Expected price E[P]
-    ep = fp(r"E\[P\][^\d\$~]{0,10}~?\s*\$?([\d.]+)")
+    # E[P] — must capture the price number after ~$
+    ep = fp(r"E\[P\]\s*2-3週[^\d~$]{0,5}~?\s*\$\s*(\d{2,3}\.\d{1,2})")
+    if not ep:
+        ep = fp(r"E\[P\][^\d]{0,20}(\d{2,3}\.\d{2})")
 
-    return {
+    result = {
         "date":           datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "brent":          brent,
         "wti":            wti,
@@ -133,6 +141,9 @@ def extract_kv(report_md: str, scraped: dict) -> dict:
         "sources_ok":     sum(1 for v in scraped.values()
                               if isinstance(v, dict) and "error" not in v),
     }
+    print(f"  [extract] brent={brent} wti={wti} crack={crack} "
+          f"s1={s1}% s2={s2}% s3={s3}% s4={s4}% ep={ep}")
+    return result
 
 
 def run_analysis(scraped: dict) -> tuple:
@@ -141,7 +152,4 @@ def run_analysis(scraped: dict) -> tuple:
     prompt      = build_prompt(scraped, prev_report, prev_json)
     print("  [AI] Calling Gemini API...")
     report_md   = _call_gemini(prompt)
-    structured  = extract_kv(report_md, scraped)
-    print(f"  [AI] Extracted: Brent={structured.get('brent')} WTI={structured.get('wti')} "
-          f"S1={structured.get('s1_pct')}% S3={structured.get('s3_pct')}% EP={structured.get('expected_price')}")
-    return report_md, structured
+    return report_md, extract_kv(report_md, scraped)
