@@ -13,7 +13,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # Gemini API
 # ============================================================
 
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-3.5-flash"
 
 GEMINI_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
@@ -209,3 +209,7 @@ def build_prompt(scraped, prev_report, prev_json) -> str:
     ensure_ascii=False,
     indent=2
 )[:14000]}
+
+
+
+
