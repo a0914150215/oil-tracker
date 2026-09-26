@@ -1,0 +1,13 @@
+{
+  "date": "2026-09-26",
+  "brent": null,
+  "wti": null,
+  "diesel_crack": null,
+  "td3c_ws": null,
+  "s1_pct": "2",
+  "s2_pct": "18",
+  "s3_pct": "65",
+  "s4_pct": "15",
+  "expected_price": "125.50",
+  "sources_ok": 3
+}
