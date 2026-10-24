@@ -1,7 +1,7 @@
 {
   "date": "2026-10-24",
   "prices": {
-    "timestamp": "2026-10-24T00:10:43.283462+00:00",
+    "timestamp": "2026-10-24T23:55:11.468850+00:00",
     "eia_crude": {
       "source": "EIA open API",
       "data": {
@@ -27,7 +27,7 @@
         "extracted_rates": [
           "5",
           "40",
-          "3,572.00",
+          "3,560.20",
           "01",
           "02",
           "03"
@@ -51,7 +51,7 @@
     }
   },
   "geopolitics": {
-    "timestamp": "2026-10-24T00:11:10.054487+00:00",
+    "timestamp": "2026-10-24T23:55:38.527678+00:00",
     "reuters": {
       "source": "Reuters",
       "headlines": [],
@@ -111,7 +111,7 @@
     }
   },
   "southeast_asia": {
-    "timestamp": "2026-10-24T00:11:15.380788+00:00",
+    "timestamp": "2026-10-24T23:55:45.176117+00:00",
     "philippines_doe": {
       "source": "Philippines DOE",
       "data": {},
