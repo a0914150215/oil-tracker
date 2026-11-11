@@ -1,7 +1,7 @@
 {
   "date": "2026-11-11",
   "prices": {
-    "timestamp": "2026-11-11T03:08:15.382293+00:00",
+    "timestamp": "2026-11-11T03:11:15.002088+00:00",
     "stooq_futures": {
       "source": "Stooq futures (CB.F / CL.F)",
       "data": {},
@@ -69,7 +69,7 @@
     }
   },
   "geopolitics": {
-    "timestamp": "2026-11-11T03:08:42.031796+00:00",
+    "timestamp": "2026-11-11T03:11:41.059355+00:00",
     "reuters": {
       "source": "Reuters",
       "headlines": [],
@@ -129,7 +129,7 @@
     }
   },
   "southeast_asia": {
-    "timestamp": "2026-11-11T03:08:47.820333+00:00",
+    "timestamp": "2026-11-11T03:11:46.423527+00:00",
     "philippines_doe": {
       "source": "Philippines DOE",
       "data": {},
