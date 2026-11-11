@@ -1,9 +1,27 @@
 {
   "date": "2026-11-11",
   "prices": {
-    "timestamp": "2026-11-11T02:44:42.754832+00:00",
+    "timestamp": "2026-11-11T03:04:59.036864+00:00",
+    "stooq_futures": {
+      "source": "Stooq futures (CB.F / CL.F)",
+      "data": {},
+      "error": "no data"
+    },
+    "spot_daily": {
+      "source": "EIA daily spot",
+      "data": {
+        "brent": {
+          "price": 107.03,
+          "period": "2026-11-03"
+        },
+        "wti": {
+          "price": 99.64,
+          "period": "2026-11-03"
+        }
+      }
+    },
     "eia_crude": {
-      "source": "EIA open API",
+      "source": "EIA weekly (stale, reference only)",
       "data": {
         "brent": {
           "price": "121.17",
@@ -51,7 +69,7 @@
     }
   },
   "geopolitics": {
-    "timestamp": "2026-11-11T02:45:09.335579+00:00",
+    "timestamp": "2026-11-11T03:05:25.601476+00:00",
     "reuters": {
       "source": "Reuters",
       "headlines": [],
@@ -111,7 +129,7 @@
     }
   },
   "southeast_asia": {
-    "timestamp": "2026-11-11T02:45:14.960753+00:00",
+    "timestamp": "2026-11-11T03:05:31.291565+00:00",
     "philippines_doe": {
       "source": "Philippines DOE",
       "data": {},
